@@ -1,3 +1,4 @@
 .env
-allMessages.json
+all.json
 node_modules
+scratch.js

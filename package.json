@@ -3,14 +3,23 @@
   "version": "1.0.0",
   "description": "",
   "main": "bot.js",
-  "scripts": {
-    "test": "echo \\\"Need some tests\\\""
-  },
   "author": "",
   "license": "ISC",
+  "eslintConfig": {
+    "extends": "airbnb-base",
+    "rules": {
+      "global-require": 1
+    }
+  },
+  "eslintIgnore": [
+    "scratch.js"
+  ],
+  "devDependencies": {
+    "eslint": "^4.18.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.9.0"
+  },
   "dependencies": {
-    "@slack/client": "^3.12.0",
-    "dotenv": "^4.0.0",
-    "isomorphic-unfetch": "^2.0.0"
+    "dotenv": "^5.0.0"
   }
 }
