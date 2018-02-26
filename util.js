@@ -6,6 +6,13 @@ const writeToFile = promisify(fs.writeFile);
 const readFromFile = promisify(fs.readFile);
 const execPromise = promisify(exec);
 
+/* eslint-disable no-console */
+const consoleOut = (error, response) => {
+  if (error) console.error(error);
+  if (response) console.log(response);
+};
+/* eslint-enable no-console */
+
 const pluck = (props, obj) => (Array.isArray(props)
   ? props.reduce((acc, p) => {
     acc[p] = obj[p];
@@ -29,6 +36,7 @@ const stripSpecial = w => w.replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '');
 
 module.exports = {
   capitalize,
+  consoleOut,
   exec,
   execPromise,
   flatten,

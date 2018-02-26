@@ -1,10 +1,5 @@
 /**
- * @todo: handle errors
  * @todo: documentation with JSDoc
- * gameplan:
- * hook up to RTM
- * send a loading status on start
- * send over the complete message on ready
  */
 
 if (process.env.NODE_ENV !== 'production') {
@@ -29,7 +24,7 @@ const {
  * @param [string] | string props
  * @returns {promise} profile
  */
-const getUser = (props, query) => execPromise(`curl https://slack.com/api/users.list?token=${token}&pretty=1`)
+const getUser = (props, query = {}) => execPromise(`curl https://slack.com/api/users.list?token=${token}&pretty=1`)
   .then(({ stdout }) => JSON.parse(stdout))
   .then(({ members }) => members.find(m => Object.entries(query)
     .reduce((acc, [key, val]) => acc && m[key] === val, true)))
@@ -42,7 +37,7 @@ const getUserId = query => getUser(['id'], query).then(u => u.id);
  * @param [string] props
  * @returns {promise} [channel]
  */
-const getChannels = (props, query) => execPromise(`curl https://slack.com/api/channels.list?token=${token}&pretty=1`)
+const getChannels = (props, query = {}) => execPromise(`curl https://slack.com/api/channels.list?token=${token}&pretty=1`)
   .then(({ stdout }) => JSON.parse(stdout))
   .then(({ channels }) => channels.filter(c => Object.entries(query)
     .reduce((acc, [key, val]) => acc && c[key] === val, true)))
@@ -149,12 +144,24 @@ const createMessage = (parsedCorpus, maxLength = 20, minLength = 7) => {
   return `${sentence.join(' ')}.`;
 };
 
-Promise.all([
-  getUserId({ name: 'ari' }),
-  getChannelIds({ name: 'general' }),
+const createMessageApi = (userQuery, channelQuery, callback) => Promise.all([
+  getUserId(userQuery),
+  getChannelIds(channelQuery),
 ])
   .then(([user, channels]) => getAllMessages(user, channels))
   .then(flatten)
   .then(parseCorpus)
   .then(createMessage)
-  .then(console.log);
+  .then(res => callback(null, res))
+  .catch(err => callback(err));
+
+const postMessage = (text, channel, callback) => {
+  exec(`curl -X POST -H 'Authorization: Bearer ${token}'\
+  -H 'Content-type: application/json' \
+  --data '${JSON.stringify({ channel, text })}' https://slack.com/api/chat.postMessage`, callback);
+};
+
+module.exports = {
+  createMessageApi,
+  postMessage,
+};
