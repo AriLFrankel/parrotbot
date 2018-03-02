@@ -1,9 +1,13 @@
 /**
- * @todo cache to handle redundant Slack events
+ * @todo break up into middleware
+ * generally clean up code
+ * document code
 */
 const http = require('http');
 const { createMessageApi: createMessage, postMessage } = require('./bot');
 const { consoleOut } = require('./util');
+
+const cache = new Set();
 
 const isChallenge = body => Boolean(body.challenge);
 const findParrotRequest = ({ event }) => Object.assign(event, {
@@ -39,14 +43,13 @@ http.createServer((request, response) => {
       response.setHeader('Content-Type', 'application/x-www-form-urlencoded');
       return response.end(body.challenge);
     }
-    // const { event_id: eventId } = body;
-    // console.log('id', eventId, cache.has(eventId));
-    // // Handle each message only once...Slack seems to send them multiple times
-    // if (cache.has(eventId)) return response.end();
-    // cache.add(eventId);
-    // setTimeout(() => {
-    //   cache.delete(eventId)
-    // }, 10000);
+    const { event_id: eventId } = body;
+    // Handle each message only once...Slack seems to send them multiple times
+    if (cache.has(eventId)) {
+      return response.end();
+    }
+    cache.add(eventId);
+    setTimeout(() => cache.remove(eventId), 60 * 1000);
     const parrotRequest = findParrotRequest(body);
     const { channel } = parrotRequest;
     if (parrotRequest.user !== null) {

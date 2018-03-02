@@ -8,7 +8,8 @@
   "eslintConfig": {
     "extends": "airbnb-base",
     "rules": {
-      "global-require": 1
+      "global-require": 1,
+      "import/no-extraneous-dependencies": 1
     }
   },
   "eslintIgnore": [
