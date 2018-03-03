@@ -13,7 +13,8 @@
     }
   },
   "eslintIgnore": [
-    "scratch.js"
+    "scratch.js",
+    "out"
   ],
   "devDependencies": {
     "eslint": "^4.18.1",

@@ -1,9 +1,6 @@
 const { exec } = require('child_process');
-const fs = require('fs');
 const { promisify } = require('util');
 
-const writeToFile = promisify(fs.writeFile);
-const readFromFile = promisify(fs.readFile);
 const execPromise = promisify(exec);
 
 /* eslint-disable no-console */
@@ -13,18 +10,32 @@ const consoleOut = (error, response) => {
 };
 /* eslint-enable no-console */
 
+/**
+ * A helper function for plucking properties off of an object.
+ * Accepts an array of propreties or a single property
+ * @param {string[] | string} props
+ * @param {obj} obj
+ */
 const pluck = (props, obj) => (Array.isArray(props)
   ? props.reduce((acc, p) => {
     acc[p] = obj[p];
     return acc;
   }, {})
   : { [props]: obj[props] });
-
+/**
+ * A helper function for flattening arrays
+ * @param {array[]} arrays
+ */
 const flatten = arrays => arrays.reduce((acc, cur) => {
   if (cur.constructor === Array) return acc.concat(flatten(cur));
   acc.push(cur);
   return acc;
 }, []);
+
+/**
+ * A helper function for capitalizing words
+ * @param {string} w
+ */
 
 const capitalize = w => (w.length
   ? `${w[0].toUpperCase()}${w.slice(1)}`
@@ -42,7 +53,5 @@ module.exports = {
   flatten,
   makeRandomChoice,
   pluck,
-  readFromFile,
   stripSpecial,
-  writeToFile,
 };

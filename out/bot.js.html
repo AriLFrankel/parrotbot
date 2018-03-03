@@ -1,4 +1,32 @@
-/**
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: bot.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: bot.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
  * @file contains interactions with Slack and generation of phrases
  */
 
@@ -24,12 +52,12 @@ const {
  * @param {string?} query.id
  * @param {string?} query.name
  * @param {string[] | string} props
- * @returns {Promise.<object>}
+ * @returns {Promise.&lt;object>}
  */
-const getUser = (props, query = {}) => execPromise(`curl https://slack.com/api/users.list?token=${token}&pretty=1`)
+const getUser = (props, query = {}) => execPromise(`curl https://slack.com/api/users.list?token=${token}&amp;pretty=1`)
   .then(({ stdout }) => JSON.parse(stdout))
   .then(({ members }) => members.find(m => Object.entries(query)
-    .reduce((acc, [key, val]) => acc && m[key] === val, true)))
+    .reduce((acc, [key, val]) => acc &amp;&amp; m[key] === val, true)))
   .then(prof => (props ? pluck(props, prof) : prof));
 
 const getUserId = query => getUser(['id'], query).then(u => u.id);
@@ -37,12 +65,12 @@ const getUserId = query => getUser(['id'], query).then(u => u.id);
 /**
  * A helper function for fetching channels in a workspace
  * @param {string[]} props
- * @returns {Promise.<string[]>}
+ * @returns {Promise.&lt;string[]>}
  */
-const getChannels = (props, query = {}) => execPromise(`curl https://slack.com/api/channels.list?token=${token}&pretty=1`)
+const getChannels = (props, query = {}) => execPromise(`curl https://slack.com/api/channels.list?token=${token}&amp;pretty=1`)
   .then(({ stdout }) => JSON.parse(stdout))
   .then(({ channels }) => channels.filter(c => Object.entries(query)
-    .reduce((acc, [key, val]) => acc && c[key] === val, true)))
+    .reduce((acc, [key, val]) => acc &amp;&amp; c[key] === val, true)))
   .then(channels => channels.map(channel => (props
     ? pluck(props, channel)
     : channel)));
@@ -53,7 +81,7 @@ const getChannelIds = query => getChannels(['id'], query).then(channels => chann
  * A helper function for fetching messages in a channel
  * @param string user
  * @param string channel
- * @returns {Promise.<string[]>}
+ * @returns {Promise.&lt;string[]>}
  */
 const getMessages = (user, channel) => new Promise((resolve) => {
   const allMessages = [];
@@ -67,8 +95,8 @@ const getMessages = (user, channel) => new Promise((resolve) => {
       https://slack.com/api/channels.history`, (error, stdout) => {
       const json = JSON.parse(stdout);
       const userMessages = json.messages.filter(m =>
-        m.type === 'message' &&
-          m.user === user &&
+        m.type === 'message' &amp;&amp;
+          m.user === user &amp;&amp;
           !m.text.includes('added an integration to this channel'));
       allMessages.push(userMessages.map(m => pluck(['text', 'type'], m)));
       if (json.has_more) {
@@ -86,7 +114,7 @@ const getMessages = (user, channel) => new Promise((resolve) => {
  * A helper function for getting all messages belonging to a user.
  * @param {string} user
  * @param {string} channels
- * @returns {Promise.<string[]>}
+ * @returns {Promise.&lt;string[]>}
  */
 const getAllMessages = (user, channels) => (Array.isArray(channels)
   ? Promise.all(channels.map(c => getMessages(user, c)))
@@ -102,11 +130,11 @@ const parseCorpus = (corpus) => {
   const terminals = new Set();
   const starts = [];
   const relationships = {};
-  for (let i = 0; i < corpus.length; i += 1) {
+  for (let i = 0; i &lt; corpus.length; i += 1) {
     const words = corpus[i].text.split(' ').map(stripSpecial);
     terminals.add(words.slice(-2).join(' '));
     starts.push(words.slice(0, 2).join(' '));
-    for (let j = 0; j < words.length - 1; j += 1) {
+    for (let j = 0; j &lt; words.length - 1; j += 1) {
       const firstPhrase = words.slice(j, j + 2).join(' ');
       const secondPhrase = words.slice(j + 2, j + 4).join(' ');
       if (relationships[firstPhrase]) {
@@ -128,11 +156,7 @@ const parseCorpus = (corpus) => {
  * @param {number} minLength
  * @returns {string} message
  */
-const createMessage = (
-  parsedCorpus,
-  maxLength = process.env.MAX_LENGTH,
-  minLength = process.env.MIN_LENGTH,
-) => {
+const createMessage = (parsedCorpus, maxLength = 20, minLength = 7) => {
   const { starts, terminals, relationships } = parsedCorpus;
   let currentWord = makeRandomChoice(starts);
   let nextWord;
@@ -148,7 +172,7 @@ const createMessage = (
     }
   }
   // try again if a sentence of insufficient length is produced
-  if (sentence.length < minLength) return createMessage(parsedCorpus, maxLength, minLength);
+  if (sentence.length &lt; minLength) return createMessage(parsedCorpus, maxLength, minLength);
   return `${sentence.join(' ')}.`;
 };
 
@@ -165,7 +189,7 @@ const createMessageApi = (userQuery, channelQuery, callback) => Promise.all([
 
 const postMessage = (text, channel, callback) => {
   exec(`curl -X POST -H 'Authorization: Bearer ${token}'\
-  -H 'Content-Type: application/json' \
+  -H 'Content-type: application/json' \
   --data '${JSON.stringify({ channel, text })}' https://slack.com/api/chat.postMessage`, callback);
 };
 
@@ -173,3 +197,26 @@ module.exports = {
   createMessageApi,
   postMessage,
 };
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#capitalize">capitalize</a></li><li><a href="global.html#createAndPostMessage">createAndPostMessage</a></li><li><a href="global.html#createMessage">createMessage</a></li><li><a href="global.html#findParrotRequest">findParrotRequest</a></li><li><a href="global.html#flatten">flatten</a></li><li><a href="global.html#getAllMessages">getAllMessages</a></li><li><a href="global.html#getChannels">getChannels</a></li><li><a href="global.html#getMessages">getMessages</a></li><li><a href="global.html#getUser">getUser</a></li><li><a href="global.html#isChallenge">isChallenge</a></li><li><a href="global.html#parseCorpus">parseCorpus</a></li><li><a href="global.html#parseJSONBody">parseJSONBody</a></li><li><a href="global.html#pluck">pluck</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Mar 04 2018 21:50:49 GMT-0600 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
