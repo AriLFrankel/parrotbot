@@ -23,6 +23,6 @@
     "dotenv": "^5.0.0"
   },
   "dependencies": {
-    "@slack/client": "^3.16.0"
+    "@slack/client": "^5.0.2"
   }
 }
